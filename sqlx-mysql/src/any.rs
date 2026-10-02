@@ -171,7 +171,8 @@ impl<'a> TryFrom<&'a MySqlTypeInfo> for AnyTypeInfo {
                 ColumnType::Blob
                 | ColumnType::TinyBlob
                 | ColumnType::MediumBlob
-                | ColumnType::LongBlob => AnyTypeInfoKind::Blob,
+                | ColumnType::LongBlob
+                | ColumnType::Vector => AnyTypeInfoKind::Blob,
                 ColumnType::String | ColumnType::VarString | ColumnType::VarChar => {
                     AnyTypeInfoKind::Text
                 }
