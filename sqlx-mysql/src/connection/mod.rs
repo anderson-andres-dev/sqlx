@@ -59,6 +59,15 @@ impl MySqlConnection {
         self.in_transaction()
     }
 
+    /// Whether the last response had `SERVER_SESSION_STATE_CHANGED` set: a
+    /// tracked session variable (see `session_track_system_variables`), the
+    /// schema or the session state changed during the last statement.
+    pub fn server_session_state_changed(&self) -> bool {
+        self.inner
+            .status_flags
+            .intersects(Status::SERVER_SESSION_STATE_CHANGED)
+    }
+
     pub(crate) fn in_transaction(&self) -> bool {
         self.inner
             .status_flags

@@ -131,6 +131,18 @@ impl PgConnection {
         Ok(())
     }
 
+    /// The current value of a parameter the server reports with
+    /// `ParameterStatus` (`standard_conforming_strings`, `TimeZone`,
+    /// `application_name`…), as libpq's `PQparameterStatus`. The server sends
+    /// a new value whenever one of them changes, so this needs no round trip.
+    pub fn parameter_status(&self, name: &str) -> Option<&str> {
+        self.inner
+            .stream
+            .parameter_statuses
+            .get(name)
+            .map(String::as_str)
+    }
+
     /// The transaction status the server reported in its last
     /// `ReadyForQuery` message.
     ///
