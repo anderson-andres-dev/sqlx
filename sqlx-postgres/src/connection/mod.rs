@@ -131,6 +131,25 @@ impl PgConnection {
         Ok(())
     }
 
+    /// The transaction status the server reported in its last
+    /// `ReadyForQuery` message.
+    ///
+    /// Unlike [`Connection::is_in_transaction`], which only counts the
+    /// transactions opened through [`Connection::begin`], this also sees
+    /// blocks started or ended with raw SQL, and tells a failed block (every
+    /// query is rejected until it ends) from a healthy one. No round trip to
+    /// the server.
+    ///
+    /// [`Connection::is_in_transaction`]: sqlx_core::connection::Connection::is_in_transaction
+    /// [`Connection::begin`]: sqlx_core::connection::Connection::begin
+    pub fn server_transaction_status(&self) -> PgTransactionStatus {
+        match self.inner.transaction_status {
+            TransactionStatus::Idle => PgTransactionStatus::Idle,
+            TransactionStatus::Transaction => PgTransactionStatus::InTransaction,
+            TransactionStatus::Error => PgTransactionStatus::Failed,
+        }
+    }
+
     pub(crate) fn in_transaction(&self) -> bool {
         match self.inner.transaction_status {
             TransactionStatus::Transaction => true,
@@ -254,4 +273,17 @@ impl AsMut<PgConnection> for PgConnection {
     fn as_mut(&mut self) -> &mut PgConnection {
         self
     }
+}
+
+/// Transaction status of a [`PgConnection`] as last reported by the server
+/// (see [`PgConnection::server_transaction_status`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum PgTransactionStatus {
+    /// Not in a transaction block.
+    Idle,
+    /// In a transaction block.
+    InTransaction,
+    /// In a failed transaction block: queries are rejected until it ends.
+    Failed,
 }

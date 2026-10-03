@@ -45,6 +45,20 @@ pub(crate) struct MySqlConnectionInner {
 }
 
 impl MySqlConnection {
+    /// Whether the server reports an open transaction on this connection.
+    ///
+    /// Read from the status flags (`SERVER_STATUS_IN_TRANS`) of the last
+    /// response, so it also sees transactions started or ended with raw SQL
+    /// (`BEGIN`, `COMMIT`, implicit commits), unlike
+    /// [`Connection::is_in_transaction`], which only counts the ones opened
+    /// through [`Connection::begin`]. No round trip to the server.
+    ///
+    /// [`Connection::is_in_transaction`]: sqlx_core::connection::Connection::is_in_transaction
+    /// [`Connection::begin`]: sqlx_core::connection::Connection::begin
+    pub fn server_in_transaction(&self) -> bool {
+        self.in_transaction()
+    }
+
     pub(crate) fn in_transaction(&self) -> bool {
         self.inner
             .status_flags
